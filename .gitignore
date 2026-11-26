@@ -1,0 +1,14 @@
+node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+.DS_Store
+*.code-workspace
+.vscode/
+
+# Build artifacts for multi-language labs
+*.o
+*.out
+*.exe
+target/
+__pycache__/
+.venv/
