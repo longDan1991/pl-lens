@@ -412,3 +412,29 @@ pub fn run() {}
 ```
 
 :::
+
+### 9. 控制流即表达式（三元运算符 → `if` 表达式）
+
+Rust 没有三元运算符 `a ? b : c`，`if`、`match`、代码块 `{}` 都是表达式，可直接赋值；代码块最后一行**不加分号**即返回值（多写分号会变成语句，求值为单元类型 `()`）。
+
+::: code-group
+
+```ts [TypeScript]
+const level = us < 50 ? 'fast' : us < 500 ? 'normal' : 'slow'
+```
+
+```python [Python]
+level = "fast" if us < 50 else ("normal" if us < 500 else "slow")
+```
+
+```rust [Rust]
+let level = if us < 50 {
+    "fast"
+} else if us < 500 {
+    "normal"
+} else {
+    "slow"
+};
+```
+
+:::

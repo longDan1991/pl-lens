@@ -92,7 +92,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: '1.1 符号映射', link: '/rust/01-syntax/01-syntax-symbols' },
-            { text: '1.2 基础类型', link: '/rust/01-syntax/02-variables-types-expr' },
+            { text: '1.2 变量', link: '/rust/01-syntax/02-variables' },
             { text: '1.3 结构体', link: '/rust/01-syntax/03-struct' },
             { text: '1.4 枚举', link: '/rust/01-syntax/04-enum' },
             { text: '1.5 工程组织', link: '/rust/01-syntax/05-modules-cargo' }
