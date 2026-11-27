@@ -94,6 +94,38 @@ struct OrderId(u64);
 struct Empty;
 ```
 
+### 3. Newtype 元组结构体怎么用？
+
+把单个底层类型包进元组结构体，就是 **Newtype 模式**。用法只有三步：**构造包装 → `.0` 或解构取值 → 挂载专属方法**。
+
+```rust
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OrderId(pub u64);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PriceTicks(pub i64);
+
+impl PriceTicks {
+    pub fn raw(self) -> i64 {
+        self.0 // 通过 .0 取出内部值
+    }
+}
+
+fn cancel_order(id: OrderId) {
+    let OrderId(raw_id) = id; // 也可以用模式解构取值
+    println!("cancel #{raw_id}");
+}
+
+let oid = OrderId(1001);
+let px = PriceTicks(250_00);
+cancel_order(oid); // OK
+// cancel_order(px); // 编译报错：彻底防止把价格误当订单号传进去
+```
+
+工程两大核心用途：
+1. **零成本类型安全**：防止 `OrderId`、`UserId`、`PriceTicks` 这类底层同为整数的业务参数传反。
+2. **绕过孤儿规则**：不能直接给标准库 `Vec<T>` 实现外部 Trait，但可以包一层 `struct MyVec(Vec<i32>)` 后再实现（详见 [3.1 Trait](/rust/03-idioms/01-generics-traits)）。
+
 ---
 
 ## 二、高频踩坑
