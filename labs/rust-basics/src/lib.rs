@@ -1,6 +1,8 @@
 pub mod ownership;
 pub mod borrowing;
 pub mod lifetimes;
+pub mod idioms;
+pub mod concurrency_sys;
 
 /// 1.1: Shadowing changes binding type without `mut`.
 pub fn shadowing_demo(raw: &str) -> usize {

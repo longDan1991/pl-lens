@@ -20,7 +20,7 @@ features:
   - title: PL 跨语言总书
     details: 按内存、所有权、类型系统、并发与生产工程横向对比 TS / Python / Go / C / Rust / C++。
     link: /pl/
-  - title: Rust 专书（更新中）
+  - title: Rust 专书（已完结）
     details: 面向 TS / Python 开发者：语法速通、所有权与借用、工程惯用法与低延迟/FFI 实践。
     link: /rust/
   - title: C++ 专书（规划中）
@@ -44,7 +44,7 @@ features:
 | 书目 | 定位 | 当前进度 |
 |---|---|---|
 | **[PL 总书](/pl/)** | 6 章 · 24 篇，跨语言 PL 机制对比与低延迟系统主线 | 第 0 章（0.1–0.2）已发布 |
-| **[Rust 专书](/rust/)** | 4 模块 · 15 篇，解决语法门槛与工程实战，配套 `labs/rust-basics/` | 1.1–2.3 已发布（模块 1–2 完成） |
+| **[Rust 专书](/rust/)** | 4 模块 · 15 篇，解决语法门槛与工程实战，配套 `labs/rust-basics/` | 全书完结（1.1–4.4） |
 | **[C++ 专书](/cpp/)** | 现代 C++20 语法、内存控制与工程实践 | 规划中 |
 | **[Go 专书](/go/)** | Go 语法速通、运行时与高并发控制面 | 规划中 |
 | **[Python 专书](/python/)** | CPython 对象模型、GIL、`asyncio` 与原生扩展 FFI | 规划中 |
