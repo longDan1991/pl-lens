@@ -120,9 +120,29 @@ println!("{}", pkt.id); // OK：id 未被移走
 // println!("{}", pkt.payload); // 报错：已被移走
 ```
 
-### 3. `Copy` 和 `Drop` 不能同时实现
+### 3. 为什么 `Copy` 和 `Drop` 不能同时实现？（反例拆解）
 
-如果一个类型需要自定义清理逻辑（`Drop`），说明它管理着非栈资源（堆内存、文件描述符、锁），绝不可能通过简单按位拷贝安全复制，因此编译器直接禁止同时实现 `Copy` 和 `Drop`。
+假设允许一个持有文件描述符 `fd` 的结构体同时实现 `Copy` 和 `Drop`：
+
+```rust
+// 伪代码（实际编译报错：E0184）
+#[derive(Copy, Clone)]
+struct FileHandle { fd: i32 }
+
+impl Drop for FileHandle {
+    fn drop(&mut self) { close(self.fd); } // 离开作用域时关闭文件
+}
+
+fn main() {
+    let f1 = FileHandle { fd: 3 };
+    let f2 = f1; // 因为是 Copy，f1 和 f2 拿到同一个 fd = 3，且 f1 不失效！
+} // 作用域结束：先 drop(f2) 关闭 fd=3，再 drop(f1) 再次关闭 fd=3 -> 双重释放！
+```
+
+矛盾本质：
+- **`Copy` 的契约**：赋值时只是无脑复制栈字节，**不执行自定义逻辑，原变量继续有效**。
+- **`Drop` 的契约**：每个值离开作用域时，**必须执行一次清理动作**（释放堆内存、关文件、解锁）。
+- 两者并存 → 复制出 N 份指向同一资源的副本 → 离开作用域时触发 N 次 `Drop` → **Double Free / 重复关闭**。因此编译器直接从规则上禁止共存（`error[E0184]`）。
 
 ---
 
