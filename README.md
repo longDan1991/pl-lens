@@ -12,7 +12,7 @@
 pl-lens/
 ├── docs/
 │   ├── pl/               # PL 跨语言对比总书（6 章 · 24 篇）
-│   ├── rust/             # Rust 专书（4 模块 · 14 篇）
+│   ├── rust/             # Rust 专书（4 模块 · 15 篇）
 │   ├── cpp/              # C++ 专书
 │   ├── go/               # Go 专书
 │   └── python/           # Python 专书
