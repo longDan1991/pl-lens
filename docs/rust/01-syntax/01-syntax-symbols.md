@@ -31,6 +31,14 @@ let mr = &mut n;     // 可变借用
 *mr += 5;            // 解引用修改，n 变为 15
 ```
 
+**日常怎么写**：
+
+- 绝大多数情况直接传 `&v` / `&mut v`（如 `print_len(&nums)`），不会先 `let r = &v` 多写一行。`r` 的类型是 `&i32`，存的是**地址**，不是里面的值。
+- `*` 在 90% 场景由编译器自动补全：调用方法（`v.len()`）、读字段（`o.qty`）、`println!("{}", r)` 都不用写 `*`。
+- 只有两种场景需要手写：给基础类型原地改值（`*mr += 5`，`mr` 是地址，不能给地址加 5），以及从引用里拷出值（`Some(*id)` 把 `&u64` 变成 `u64`）。
+
+> 借用解决的核心问题：Rust 直接传值默认是 **Move（交出所有权）**，想深拷贝只能 `.clone()`。借用让你**不交所有权、也不拷贝数据**，只临时借出地址。
+
 ### 3. `'a` / `'static` — 生命周期标注
 
 单引号开头不是字符，是**生命周期参数**，用来向编译器说明“返回引用的存活时间依赖哪个输入引用”。`'static` 表示贯穿整个程序运行期。
@@ -124,6 +132,26 @@ match nums.len() {
 }
 ```
 
+### 11. `impl Trait for Type` — 为类型实现协议
+
+`impl Type { ... }` 是给类型挂自身方法；`impl Trait for Type { ... }` 是**让类型满足某个协议（Trait）**，等价于 TS 的 `class X implements Y`、Python 的魔术方法 `__eq__` / `__str__`。
+
+```rust
+trait PartialEq {
+    fn eq(&self, other: &Self) -> bool;
+}
+
+impl PartialEq for Point {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+// 写完之后，p1 == p2 会被编译器翻译成 PartialEq::eq(&p1, &p2)
+```
+
+`#[derive(PartialEq)]` 就是让编译器自动生成这段 `impl`，省掉手写。
+
 ---
 
 ## 二、同义不同写法（TS / Python / Rust 对照）
@@ -180,6 +208,8 @@ fn add(a: i32, b: i32) -> i32 {
 ### 3. 空值处理
 
 Rust 没有 `null` / `None` 字面量，用 `Option<T>` 显式包装 `Some(v)` 或 `None`。
+
+`Some` 不是关键字，只是标准库枚举的一个变体名，定义总共两行：`enum Option<T> { Some(T), None }`。因为值被装进 `Some(...)`，你没法把它当裸值直接用，编译器会逼你先处理 `None` 分支。
 
 ::: code-group
 
@@ -296,7 +326,51 @@ fn label(e: &Event) -> String {
 
 :::
 
-### 6. 动态数组与字符串
+### 6. `enum` 的本质：常量集合 vs 和类型（Tagged Union）
+
+TS / Python 的 `enum` 只是给数字或字符串起别名的**常量集合**，每个选项不能携带不同结构的数据；Rust 的 `enum` 是**和类型**，每个变体可以带不同的数据，也是 `Option` / `Result` 的底层机制。
+
+::: code-group
+
+```ts [TypeScript]
+// TS 的 enum 只能表达常量
+enum Status {
+  Ok = 200,
+  NotFound = 404,
+}
+
+// 想携带不同数据，必须另写 Union，并手写 kind 字段
+type Message =
+  | { kind: 'quit' }
+  | { kind: 'move'; x: number; y: number }
+```
+
+```python [Python]
+# Python 的 Enum 同样只是常量集合
+from enum import IntEnum
+
+class Status(IntEnum):
+    OK = 200
+    NOT_FOUND = 404
+```
+
+```rust [Rust]
+// 一个 enum 同时覆盖「常量」和「携带不同数据的和类型」
+enum Message {
+    Quit,                    // 不带数据
+    Move { x: i32, y: i32 }, // 携带结构体字段
+    Text(String),            // 携带单个值
+}
+
+enum Status {
+    Ok = 200,
+    NotFound = 404,
+}
+```
+
+:::
+
+### 7. 动态数组与字符串
 
 Rust 字符串拆成两种：堆上可增长的 `String`，以及只读切片 `&str`。
 
@@ -326,7 +400,7 @@ let owned: String = String::from(s); // 堆上拥有的可变字符串
 
 :::
 
-### 7. 模块导入与导出
+### 8. 模块导入与导出
 
 Rust 默认私有，导出用 `pub`，导入用 `use`。
 
