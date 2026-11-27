@@ -87,9 +87,10 @@ export default defineConfig({
           text: '模块 1：语法速通（TS/Python 迁移）',
           collapsed: false,
           items: [
-            { text: '1.1 变量、标量类型与表达式', link: '/rust/01-syntax/01-variables-types-expr' },
-            { text: '1.2 struct、enum 与模式匹配', link: '/rust/01-syntax/02-struct-enum-match' },
-            { text: '1.3 模块系统与 Cargo 工程结构', link: '/rust/01-syntax/03-modules-cargo' }
+            { text: '1.1 语法符号速查：从 TS / Python 映射到 Rust', link: '/rust/01-syntax/01-syntax-symbols' },
+            { text: '1.2 变量、标量类型与表达式', link: '/rust/01-syntax/02-variables-types-expr' },
+            { text: '1.3 struct、enum 与模式匹配', link: '/rust/01-syntax/03-struct-enum-match' },
+            { text: '1.4 模块系统与 Cargo 工程结构', link: '/rust/01-syntax/04-modules-cargo' }
           ]
         },
         {
