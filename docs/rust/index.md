@@ -16,7 +16,7 @@
 | 模块 | 概念索引 | 状态 |
 |---|---|---|
 | **1. 语法** | [1.1 符号映射](/rust/01-syntax/01-syntax-symbols) · [1.2 变量](/rust/01-syntax/02-variables) · [1.3 结构体](/rust/01-syntax/03-struct) · [1.4 枚举](/rust/01-syntax/04-enum) · [1.5 工程组织](/rust/01-syntax/05-modules-cargo) | 已发布（1.1–1.5） |
-| **2. 所有权** | [2.1 所有权](/rust/02-ownership/01-ownership-move-copy) · [2.2 借用](/rust/02-ownership/02-borrowing-slices) · [2.3 生命周期](/rust/02-ownership/03-lifetimes) | 规划中 |
+| **2. 所有权** | [2.1 所有权](/rust/02-ownership/01-ownership-move-copy) · [2.2 借用](/rust/02-ownership/02-borrowing-slices) · [2.3 生命周期](/rust/02-ownership/03-lifetimes) | 2.1 已发布 |
 | **3. 抽象** | [3.1 Trait](/rust/03-idioms/01-generics-traits) · [3.2 错误处理](/rust/03-idioms/02-error-handling) · [3.3 迭代器](/rust/03-idioms/03-collections-iterators) | 规划中 |
 | **4. 并发与底层** | [4.1 智能指针](/rust/04-concurrency-sys/01-smart-pointers) · [4.2 多线程](/rust/04-concurrency-sys/02-threads-send-sync) · [4.3 异步](/rust/04-concurrency-sys/03-async-tokio) · [4.4 底层边界](/rust/04-concurrency-sys/04-unsafe-ffi-pyo3) | 规划中 |
 

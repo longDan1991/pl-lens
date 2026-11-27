@@ -1,3 +1,5 @@
+pub mod ownership;
+
 /// 1.1: Shadowing changes binding type without `mut`.
 pub fn shadowing_demo(raw: &str) -> usize {
     let count = raw.trim();
