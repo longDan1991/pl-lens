@@ -18,30 +18,41 @@ y += 1;
 
 ### 2. `&` / `&mut` / `*` — 借用与解引用
 
-- `&x`：不可变借用（只读引用，可同时存在多个）。
-- `&mut x`：可变借用（读写引用，同一时刻只能有一个）。
-- `*r`：解引用，取出引用指向的值。
+- `&x`：不可变借用（只读地址，可同时存在多个）。
+- `&mut x`：可变借用（读写地址，同一时刻只能存在一个，且不能与 `&x` 共存）。
+- `*r`：解引用，顺着地址取出里面真正的值。
+
+日常大多直接把 `&nums` / `&mut nums` 传给函数，极少单独写 `let r = &n`。调用方法（`v.len()`）、读字段（`order.qty`）时 Rust 自动解引用，90% 场景不用手写 `*`；仅在通过 `&mut` 原地改基础类型或拷贝基础类型值（如 `Some(*id)`）时才写 `*`。
 
 ```rust
-let mut n = 10;
-let r = &n;          // 只读借用
-println!("{}", *r);  // 解引用读取
+fn print_len(v: &Vec<i32>) {
+    println!("{}", v.len()); // 自动解引用，直接读
+}
 
-let mr = &mut n;     // 可变借用
-*mr += 5;            // 解引用修改，n 变为 15
+let mut nums = vec![10, 20];
+print_len(&nums);            // 日常写法：直接传 &nums
+
+let mut n = 10;
+let mr = &mut n;
+*mr += 5;                    // 原地改基础类型，需显式 * 解引用
 ```
+
+> 冲突报错反例与借用规则详解见 [2.2 借用与切片](/rust/02-ownership/02-borrowing-slices)。
 
 ### 3. `'a` / `'static` — 生命周期标注
 
-单引号开头不是字符，是**生命周期参数**，用来向编译器说明“返回引用的存活时间依赖哪个输入引用”。`'static` 表示贯穿整个程序运行期。
+单引号开头不是字符，是**生命周期参数**。80% 的场景编译器会自动推断，无需手写；只有存在多个输入引用或结构体持有引用时才需显式标注。**`'a` 不改变变量的真实寿命**，只是给编译器检查用的约束条件；`'static` 表示贯穿整个程序运行期。
 
 ```rust
-fn first<'a>(s: &'a str) -> &'a str {
-    &s[..1]
+// 单输入引用可省略 'a；多输入引用需显式标注约束关系
+fn longer<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
 }
 
 let msg: &'static str = "hello"; // 字符串字面量活到程序结束
 ```
+
+> 省略规则与结构体借用实战见 [2.3 生命周期标注实战](/rust/02-ownership/03-lifetimes)。
 
 ### 4. `::` 与 `::<T>` — 路径分隔与 Turbofish
 
@@ -77,7 +88,7 @@ fn parse_port(s: &str) -> Result<u16, std::num::ParseIntError> {
 
 ### 7. `#[...]` — 属性与派生宏
 
-贴在结构体、函数或模块上方，给编译器下指令。最常见的是 `#[derive(...)]`，自动生成打印、克隆、判等代码。
+贴在结构体、函数或模块上方，类比 Python `@decorator`，但只在**编译期**生效、运行期零开销。最常见的 `#[derive(...)]` 类似编译期 `@dataclass`，自动为结构体生成打印、克隆、判等代码。
 
 ```rust
 #[derive(Debug, Clone, PartialEq)]
@@ -86,6 +97,8 @@ struct Point {
     y: i32,
 }
 ```
+
+> 为什么 Rust 不默认提供“通用打印 / 判等”？详见 [PL 总书 0.1：运行期反射 vs 裸字节内存](/pl/00-mindset/01-pl-coordinate-system)。
 
 ### 8. `..` / `..=` — 区间与结构体更新
 
@@ -123,6 +136,21 @@ match nums.len() {
     _ => println!("non-empty"),
 }
 ```
+
+### 11. `impl Trait for Type` — 为类型实现协议 / 接口
+
+`Trait` 类似 TS 的 `interface` 或 Python 的魔术方法协议（如 `__eq__`）。Rust 把“自身方法”和“实现接口”写成两种 `impl`：
+
+```rust
+impl Point { ... }               // 挂载自身方法（如 new）
+impl PartialEq for Point {       // 实现 == 比较协议（类似 Python __eq__）
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+```
+
+> Trait 与静态/动态派发详解见 [3.1 泛型、Trait 与 dyn Trait](/rust/03-idioms/01-generics-traits)。
 
 ---
 
@@ -179,7 +207,14 @@ fn add(a: i32, b: i32) -> i32 {
 
 ### 3. 空值处理
 
-Rust 没有 `null` / `None` 字面量，用 `Option<T>` 显式包装 `Some(v)` 或 `None`。
+Rust 没有 `null` / `None` 字面量，用标准库枚举 `Option<T>` 显式包装。`Some` 不是关键字，只是 `Option` 的一个变体名：
+
+```rust
+enum Option<T> {
+    Some(T), // 有值，把值包在里面
+    None,    // 无值（对应 TS null / Python None）
+}
+```
 
 ::: code-group
 
@@ -247,56 +282,85 @@ impl Counter {
 
 :::
 
-### 5. 联合类型与分支匹配（`switch` → `enum` + `match`）
+### 5. 枚举 / 和类型（`enum`）
 
-`match` 用 `=>` 连接模式与结果，且编译器强制覆盖所有分支。
+TS / Python 的 `enum` 只是常量别名；Rust 的 `enum` 是原生 **Tagged Union（和类型）**，每个变体可直接携带不同结构的数据，无需手写 `kind` 字段。
 
 ::: code-group
 
 ```ts [TypeScript]
-type Event = { kind: 'ping' } | { kind: 'data'; size: number }
-
-function label(e: Event): string {
-  switch (e.kind) {
-    case 'ping': return 'ping'
-    case 'data': return `data:${e.size}`
-  }
-}
+// 无法用 TS enum 携带不同字段，必须手写 kind 拼 Union
+type Message =
+  | { kind: 'quit' }
+  | { kind: 'move'; x: number; y: number }
+  | { kind: 'text'; body: string }
 ```
 
 ```python [Python]
 from dataclasses import dataclass
 
 @dataclass
-class Ping: pass
+class Quit: pass
 
 @dataclass
-class Data:
-    size: int
+class Move:
+    x: int
+    y: int
 
-def label(e: Ping | Data) -> str:
-    match e:
-        case Ping(): return "ping"
-        case Data(size=s): return f"data:{s}"
+@dataclass
+class Text:
+    body: str
+
+Message = Quit | Move | Text
 ```
 
 ```rust [Rust]
-enum Event {
-    Ping,
-    Data { size: usize },
+enum Message {
+    Quit,                    // 不带数据
+    Move { x: i32, y: i32 }, // 携带结构体字段
+    Text(String),            // 携带单个值
 }
+```
 
-fn label(e: &Event) -> String {
-    match e {
-        Event::Ping => "ping".to_string(),
-        Event::Data { size } => format!("data:{size}"),
+:::
+
+### 6. 分支匹配（`switch` → `match`）
+
+`match` 用 `=>` 连接模式与结果，且编译器强制覆盖所有变体，漏写分支直接报错。
+
+::: code-group
+
+```ts [TypeScript]
+function label(m: Message): string {
+  switch (m.kind) {
+    case 'quit': return 'quit'
+    case 'move': return `move(${m.x},${m.y})`
+    case 'text': return m.body
+  }
+}
+```
+
+```python [Python]
+def label(m: Message) -> str:
+    match m:
+        case Quit(): return "quit"
+        case Move(x, y): return f"move({x},{y})"
+        case Text(body): return body
+```
+
+```rust [Rust]
+fn label(m: &Message) -> String {
+    match m {
+        Message::Quit => "quit".to_string(),
+        Message::Move { x, y } => format!("move({x},{y})"),
+        Message::Text(body) => body.clone(),
     }
 }
 ```
 
 :::
 
-### 6. 动态数组与字符串
+### 7. 动态数组与字符串
 
 Rust 字符串拆成两种：堆上可增长的 `String`，以及只读切片 `&str`。
 
@@ -326,7 +390,7 @@ let owned: String = String::from(s); // 堆上拥有的可变字符串
 
 :::
 
-### 7. 模块导入与导出
+### 8. 模块导入与导出
 
 Rust 默认私有，导出用 `pub`，导入用 `use`。
 

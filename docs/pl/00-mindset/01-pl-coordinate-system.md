@@ -85,6 +85,16 @@ C / C++ / Rust / Go 的结构体类型直接决定内存字节布局：
   - Rust `Vec<Point>` / C++ `std::vector<Point>` / Go `[]Point`：连续 **16 MB** 内存，CPU 缓存命中率高。
   - Python `list[Point]`：100 万个指针 + 100 万个分散堆对象（含引用计数、类型指针、`__dict__`），体积超 **100 MB**，大量 Cache Miss。
 
+#### 运行期反射 vs 裸字节内存（为什么系统语言没有“通用打印 / 判等”？）
+
+- **Python / JS 对象自带“说明书”**：堆上对象携带类型指针与属性表（如 `PyObject` 的 `ob_refcnt`、`ob_type`、`ob_dict`），`print(p)` 可在运行期查表拿到类名与字段名。
+- **Rust / C++ 编译后烧掉元数据**：`Point { x: 1, y: 2 }` 在内存里只剩连续 8 个裸字节（`01 00 00 00 | 02 00 00 00`），运行期不知道字段名，也不知道这 8 字节是两个 `i32` 还是一个 `f64`。
+- **为什么不能默认按逐字节 `memcmp` 判等**：
+  1. **对齐空洞（Padding）**：结构体字段间可能存在未初始化的填充字节（详见 [1.2 结构体对齐](/pl/01-memory-truth/02-alignment-cache-line)）；
+  2. **堆指针字段**：两个内容相同的 `String` 指向不同堆地址，按字节比会误判不等；
+  3. **浮点语义**：IEEE-754 规定 `NaN != NaN`（详见 [1.4 浮点陷阱](/pl/01-memory-truth/04-float-and-fixed-point)）。
+- **编译期代码生成**：Rust 用 `#[derive(Debug, PartialEq)]` 趁编译期字段信息还在，只为需要的能力生成对应机器码，然后丢弃元数据（见 [Rust 1.1 语法符号速查](/rust/01-syntax/01-syntax-symbols)）。
+
 ### 3. 泛型擦除 vs 单态化
 
 - **TS**：类型擦除，运行期只有一份函数。
